@@ -40,8 +40,16 @@ Now you can run that item through the processor by passing the `KumbayaProcessor
 
 <pre lang="ruby"><code>
 text.process KumbayaProcessor
+text.value
 # result: "Your language is great"
 </code></pre>
+
+Calling process returns the altered item. Items have the following attributes:
+
+- `value` - the current value of the item
+- `input` - the original input of the item
+- `options` - the original options passed to the item
+- `history` - a history of every item alteration
     
 You will also have access to any `options` passed to the processor. Here is a class making use of `options`.
 
@@ -58,6 +66,7 @@ end
 
 text = Alter::Item.new "Your language sucks", :age => 37
 text.process [KumbayaProcessor, EligibilityProcessor]
+text.value
 # result: "Your language is great and you could run for President"
 </code></pre>
     
@@ -67,6 +76,7 @@ You can just as easily chain or separate these process calls. Options can also b
 text = Alter::Item.new "Your language sucks"
 text.process KumbayaProcessor
 text.process EligibilityProcessor, :age => 33
+text.value
 # result: "Your language is great but you're too young to be President"
 </code></pre>
     

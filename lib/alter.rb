@@ -20,7 +20,7 @@ module Alter
         run_processor(processor.new(value, merged_options))
       end
       
-      value
+      self
     end
     
     def run_processor(processor)
