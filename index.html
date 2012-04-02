@@ -1,0 +1,199 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Alter by baldwindavid</title>
+    
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Alter</h1>
+        <p>Enforce structure by moving content filters to easy-to-write processor classes</p>
+        <p class="view"><a href="https://github.com/baldwindavid/alter">View the Project on GitHub <small>baldwindavid/alter</small></a></p>
+        <ul>
+          <li><a href="https://github.com/baldwindavid/alter/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/baldwindavid/alter/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/baldwindavid/alter">Fork On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p>Passing something like a blog post through many complex filters (Markdown, Liquid, regex, Nokogiri, etc) can get ugly and difficult to test and debug. Alter enforces structure and consistency by moving each filter to easy-to-write processor classes. It also keeps a handy history of all "alterations". The source is a mere 50 lines of code, so it should be easy to read and extend.</p>
+
+<h2>Installation</h2>
+
+<p>Add this line to your application's Gemfile:</p>
+
+<pre><code>gem 'alter'
+</code></pre>
+
+<p>And then execute:</p>
+
+<pre><code>$ bundle
+</code></pre>
+
+<p>Or install it yourself as:</p>
+
+<pre><code>$ gem install alter
+</code></pre>
+
+<h2>Usage</h2>
+
+<p>Suppose you are building a blog and you want to run posts through a number of filters when converting to HTML. You might run it through Liquid, then Markdown, then do some crazy Nokogiri stuff, then rewrite YouTube URLs to embedded videos, then sanitize, do some regex replaces, etc. And maybe you want to run it through only some filters in one area of the site, but all filters in other areas. This can quickly get ugly and disorganized.</p>
+
+<p>Alter gives you structure and consistency by passing text (or really anything) through easy to write processor classes. All you need to do is inherit from <code>Alter::Processor</code> and provide an <code>output</code> method.</p>
+
+<div class="highlight">
+<pre>
+<span class="k">class</span> <span class="nc">KumbayaProcessor</span> <span class="o">&lt;</span> <span class="no">Alter</span><span class="o">::</span><span class="no">Processor</span>
+  <span class="k">def</span> <span class="nf">output</span>
+    <span class="n">input</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="s2">"sucks"</span><span class="p">,</span> <span class="s2">"is great"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre>
+</div>
+
+    
+
+<p>You will already have access to the <code>input</code> attribute. You are simply delivering the <code>output</code> based upon the <code>input</code>. To use the processor, you will first create a new Alter item which will setup that initial <code>input</code> value.</p>
+
+<div class="highlight">
+<pre>
+<span class="n">text</span> <span class="o">=</span> <span class="no">Alter</span><span class="o">::</span><span class="no">Item</span><span class="o">.</span><span class="n">new</span> <span class="s2">"Your language sucks"</span>
+</pre>
+</div>
+
+    
+
+<p>Now you can run that item through the processor by passing the <code>KumbayaProcessor</code> class to the process method. The process method also accepts an array of processors.</p>
+
+<div class="highlight">
+<pre>
+<span class="n">text</span><span class="o">.</span><span class="n">process</span> <span class="no">KumbayaProcessor</span>
+<span class="n">text</span><span class="o">.</span><span class="n">value</span>
+<span class="c1"># result: "Your language is great"</span>
+</pre>
+</div>
+
+
+<p>Calling process returns the altered item. Items have the following attributes:</p>
+
+<ul>
+<li>
+<code>value</code> - the current value of the item</li>
+<li>
+<code>input</code> - the original input of the item</li>
+<li>
+<code>options</code> - the original options passed to the item</li>
+<li>
+<code>history</code> - a history of every item alteration</li>
+</ul><p>You will also have access to any <code>options</code> passed to the processor. Here is a class making use of <code>options</code>.</p>
+
+<div class="highlight">
+<pre>
+<span class="k">class</span> <span class="nc">EligibilityProcessor</span> <span class="o">&lt;</span> <span class="no">Alter</span><span class="o">::</span><span class="no">Processor</span>
+  <span class="k">def</span> <span class="nf">output</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">[</span><span class="ss">:age</span><span class="o">]</span> <span class="o">&gt;=</span> <span class="mi">35</span>
+      <span class="n">input</span> <span class="o">+</span> <span class="s2">" and you could run for President"</span>
+    <span class="k">else</span>
+      <span class="n">input</span> <span class="o">+</span> <span class="s2">" but you're too young to be President"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">text</span> <span class="o">=</span> <span class="no">Alter</span><span class="o">::</span><span class="no">Item</span><span class="o">.</span><span class="n">new</span> <span class="s2">"Your language sucks"</span><span class="p">,</span> <span class="ss">:age</span> <span class="o">=&gt;</span> <span class="mi">37</span>
+<span class="n">text</span><span class="o">.</span><span class="n">process</span> <span class="o">[</span><span class="no">KumbayaProcessor</span><span class="p">,</span> <span class="no">EligibilityProcessor</span><span class="o">]</span>
+<span class="n">text</span><span class="o">.</span><span class="n">value</span>
+<span class="c1"># result: "Your language is great and you could run for President"</span>
+</pre>
+</div>
+
+    
+
+<p>You can just as easily chain or separate these process calls. Options can also be passed to the process method if you only want them available to specific processors.</p>
+
+<div class="highlight">
+<pre>
+<span class="n">text</span> <span class="o">=</span> <span class="no">Alter</span><span class="o">::</span><span class="no">Item</span><span class="o">.</span><span class="n">new</span> <span class="s2">"Your language sucks"</span>
+<span class="n">text</span><span class="o">.</span><span class="n">process</span> <span class="no">KumbayaProcessor</span>
+<span class="n">text</span><span class="o">.</span><span class="n">process</span> <span class="no">EligibilityProcessor</span><span class="p">,</span> <span class="ss">:age</span> <span class="o">=&gt;</span> <span class="mi">33</span>
+<span class="n">text</span><span class="o">.</span><span class="n">value</span>
+<span class="c1"># result: "Your language is great but you're too young to be President"</span>
+</pre>
+</div>
+
+    
+
+<h3>History</h3>
+
+<p>Alter keeps a history of every "alteration" made to the original input and stores it in the <code>history</code> array.</p>
+
+<div class="highlight">
+<pre>
+<span class="n">pp</span> <span class="n">text</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">collect</span> <span class="p">{</span><span class="o">|</span><span class="n">h</span><span class="o">|</span> <span class="p">{</span><span class="ss">:processor</span> <span class="o">=&gt;</span> <span class="n">h</span><span class="o">.</span><span class="n">processor</span><span class="p">,</span> <span class="ss">:input</span> <span class="o">=&gt;</span> <span class="n">h</span><span class="o">.</span><span class="n">input</span><span class="p">,</span> <span class="ss">:output</span> <span class="o">=&gt;</span> <span class="n">h</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="ss">:options</span> <span class="o">=&gt;</span> <span class="n">h</span><span class="o">.</span><span class="n">options</span><span class="p">,</span> <span class="ss">:meta</span> <span class="o">=&gt;</span> <span class="n">h</span><span class="o">.</span><span class="n">meta</span><span class="p">}}</span>
+</pre>
+</div>
+
+
+<div class="highlight">
+<pre>
+<span class="go">result:  </span>
+<span class="go">[{:processor=&gt;KumbayaProcessor,</span>
+<span class="go">  :input=&gt;"Your language sucks",</span>
+<span class="go">  :output=&gt;"Your language is great",</span>
+<span class="go">  :options=&gt;{},</span>
+<span class="go">  :meta=&gt;nil},</span>
+<span class="go"> {:processor=&gt;EligibilityProcessor,</span>
+<span class="go">  :input=&gt;"Your language is great",</span>
+<span class="go">  :output=&gt;"Your language is great but you're too young to be President",</span>
+<span class="go">  :options=&gt;{:age=&gt;33},</span>
+<span class="go">  :meta=&gt;nil}]</span>
+</pre>
+</div>
+
+        
+
+<h3>Metadata</h3>
+
+<p>Extra metadata can be written to the history by providing a <code>meta</code> method in the processor class.</p>
+
+<div class="highlight">
+<pre>
+<span class="k">class</span> <span class="nc">UselessProcessor</span> <span class="o">&lt;</span> <span class="no">Alter</span><span class="o">::</span><span class="no">Processor</span>
+  <span class="k">def</span> <span class="nf">meta</span>
+    <span class="p">{</span> 
+      <span class="ss">:random</span> <span class="o">=&gt;</span> <span class="s2">"This is so </span><span class="si">#{</span><span class="nb">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+      <span class="ss">:data</span> <span class="o">=&gt;</span> <span class="s2">"This is so meta"</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre>
+</div>
+
+
+<h2>Contributing</h2>
+
+<ol>
+<li>Fork it</li>
+<li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
+<li>Commit your changes (<code>git commit -am 'Added some feature'</code>)</li>
+<li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
+<li>Create new Pull Request</li>
+</ol>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/baldwindavid">baldwindavid</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
