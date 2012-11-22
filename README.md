@@ -1,6 +1,6 @@
 # Alter
 
-![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/baldwindavid/alter)
+[![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/baldwindavid/alter)
 
 Passing something like a blog post through many complex filters (Markdown, Liquid, regex, Nokogiri, etc) can get ugly and difficult to test and debug. Alter enforces structure and consistency by moving each filter to easy-to-write processor classes. It also keeps a handy history of all "alterations". The source is a mere 50 lines of code, so it should be easy to read and extend.
 
