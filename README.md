@@ -31,28 +31,28 @@ class KumbayaProcessor &#60; Alter::Processor
   end
 end
 </code></pre>
-    
+
 You will already have access to the `input` attribute. You are simply delivering the `output` based upon the `input`. To use the processor, you will first create a new Alter item which will setup that initial `input` value.
 
 <pre lang="ruby"><code>
 text = Alter::Item.new "Your language sucks"
 </code></pre>
-    
+
 Now you can run that item through the processor by passing the `KumbayaProcessor` class to the process method. The process method also accepts an array of processors.
 
 <pre lang="ruby"><code>
 text.process KumbayaProcessor
-text.value
+text.output
 # result: "Your language is great"
 </code></pre>
 
 Calling process returns the altered item. Items have the following attributes:
 
-- `value` - the current value of the item
+- `output` - the current output of the item
 - `input` - the original input of the item
 - `options` - the original options passed to the item
 - `history` - a history of every item alteration
-    
+
 You will also have access to any `options` passed to the processor. Here is a class making use of `options`.
 
 <pre lang="ruby"><code>
@@ -68,20 +68,20 @@ end
 
 text = Alter::Item.new "Your language sucks", :age => 37
 text.process [KumbayaProcessor, EligibilityProcessor]
-text.value
+text.output
 # result: "Your language is great and you could run for President"
 </code></pre>
-    
+
 You can just as easily chain or separate these process calls. Options can also be passed to the process method if you only want them available to specific processors.
 
 <pre lang="ruby"><code>
 text = Alter::Item.new "Your language sucks"
 text.process KumbayaProcessor
 text.process EligibilityProcessor, :age => 33
-text.value
+text.output
 # result: "Your language is great but you're too young to be President"
 </code></pre>
-    
+
 ### History
 
 Alter keeps a history of every "alteration" made to the original input and stores it in the `history` array.
@@ -103,7 +103,7 @@ result:
   :options=>{:age=>33},
   :meta=>nil}]
 </code></pre>
-        
+
 ### Metadata
 
 Extra metadata can be written to the history by providing a `meta` method in the processor class.
@@ -111,7 +111,7 @@ Extra metadata can be written to the history by providing a `meta` method in the
 <pre lang="ruby"><code>
 class UselessProcessor &#60; Alter::Processor
   def meta
-    { 
+    {
       :random => "This is so #{rand(1000)}",
       :data => "This is so meta"
     }
